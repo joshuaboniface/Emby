@@ -375,18 +375,6 @@ namespace MediaBrowser.XbmcMetadata.Parsers
                         break;
                     }
 
-                case "website":
-                    {
-                        var val = reader.ReadElementContentAsString();
-
-                        if (!string.IsNullOrWhiteSpace(val))
-                        {
-                            item.HomePageUrl = val;
-                        }
-
-                        break;
-                    }
-
                 case "lockedfields":
                     {
                         var val = reader.ReadElementContentAsString();
@@ -587,15 +575,11 @@ namespace MediaBrowser.XbmcMetadata.Parsers
                     {
                         var val = reader.ReadElementContentAsString();
 
-                        var hasTrailer = item as IHasTrailers;
-                        if (hasTrailer != null)
+                        if (!string.IsNullOrWhiteSpace(val))
                         {
-                            if (!string.IsNullOrWhiteSpace(val))
-                            {
-                                val = val.Replace("plugin://plugin.video.youtube/?action=play_video&videoid=", BaseNfoSaver.YouTubeWatchUrl, StringComparison.OrdinalIgnoreCase);
+                            val = val.Replace("plugin://plugin.video.youtube/?action=play_video&videoid=", BaseNfoSaver.YouTubeWatchUrl, StringComparison.OrdinalIgnoreCase);
 
-                                hasTrailer.AddTrailerUrl(val);
-                            }
+                            item.AddTrailerUrl(val);
                         }
                         break;
                     }

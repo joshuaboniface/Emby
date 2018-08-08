@@ -802,7 +802,7 @@ namespace MediaBrowser.Api.Library
             var item = _libraryManager.GetItemById(request.Id);
             var auth = _authContext.GetAuthorizationInfo(Request);
 
-            var user = _userManager.GetUserById(auth.UserId);
+            var user = auth.User;
 
             if (user != null)
             {
@@ -864,15 +864,6 @@ namespace MediaBrowser.Api.Library
         public Task<object> Get(GetFile request)
         {
             var item = _libraryManager.GetItemById(request.Id);
-
-            if (!item.IsFileProtocol)
-            {
-                throw new ArgumentException("This command cannot be used for remote or virtual items.");
-            }
-            if (_fileSystem.DirectoryExists(item.Path))
-            {
-                throw new ArgumentException("This command cannot be used for directories.");
-            }
 
             return ResultFactory.GetStaticFileResult(Request, item.Path);
         }
@@ -1032,7 +1023,7 @@ namespace MediaBrowser.Api.Library
             {
                 var item = _libraryManager.GetItemById(i);
                 var auth = _authContext.GetAuthorizationInfo(Request);
-                var user = _userManager.GetUserById(auth.UserId);
+                var user = auth.User;
 
                 if (!item.CanDelete(user))
                 {
@@ -1118,24 +1109,33 @@ namespace MediaBrowser.Api.Library
                 throw new ResourceNotFoundException("Item not found.");
             }
 
-            if (request.InheritFromParent)
+            BaseItem[] themeItems = Array.Empty<BaseItem>();
+
+            while (true)
             {
-                while (item.ThemeSongIds.Length == 0)
+                themeItems = item.GetThemeSongs().ToArray();
+
+                if (themeItems.Length > 0)
                 {
-                    var parent = item.GetParent();
-                    if (parent == null)
-                    {
-                        break;
-                    }
-                    item = parent;
+                    break;
                 }
+
+                if (!request.InheritFromParent)
+                {
+                    break;
+                }
+
+                var parent = item.GetParent();
+                if (parent == null)
+                {
+                    break;
+                }
+                item = parent;
             }
 
             var dtoOptions = GetDtoOptions(_authContext, request);
 
-            var dtos = item.ThemeSongIds.Select(_libraryManager.GetItemById)
-                            .Where(i => i != null)
-                            .OrderBy(i => i.SortName)
+            var dtos = themeItems
                             .Select(i => _dtoService.GetBaseItemDto(i, dtoOptions, user, item));
 
             var items = dtos.ToArray();
@@ -1175,24 +1175,33 @@ namespace MediaBrowser.Api.Library
                 throw new ResourceNotFoundException("Item not found.");
             }
 
-            if (request.InheritFromParent)
+            BaseItem[] themeItems = Array.Empty<BaseItem>();
+
+            while (true)
             {
-                while (item.ThemeVideoIds.Length == 0)
+                themeItems = item.GetThemeVideos().ToArray();
+
+                if (themeItems.Length > 0)
                 {
-                    var parent = item.GetParent();
-                    if (parent == null)
-                    {
-                        break;
-                    }
-                    item = parent;
+                    break;
                 }
+
+                if (!request.InheritFromParent)
+                {
+                    break;
+                }
+
+                var parent = item.GetParent();
+                if (parent == null)
+                {
+                    break;
+                }
+                item = parent;
             }
 
             var dtoOptions = GetDtoOptions(_authContext, request);
 
-            var dtos = item.ThemeVideoIds.Select(_libraryManager.GetItemById)
-                            .Where(i => i != null)
-                            .OrderBy(i => i.SortName)
+            var dtos = themeItems
                             .Select(i => _dtoService.GetBaseItemDto(i, dtoOptions, user, item));
 
             var items = dtos.ToArray();

@@ -69,15 +69,6 @@ namespace MediaBrowser.Providers.Manager
                 }
             }
 
-            if (replaceData || string.IsNullOrEmpty(target.HomePageUrl))
-            {
-                target.HomePageUrl = source.HomePageUrl;
-                if (!string.IsNullOrWhiteSpace(target.HomePageUrl) && target.HomePageUrl.IndexOf("http", StringComparison.OrdinalIgnoreCase) != 0)
-                {
-                    target.HomePageUrl = "http://" + target.HomePageUrl;
-                }
-            }
-
             if (replaceData || !target.IndexNumber.HasValue)
             {
                 target.IndexNumber = source.IndexNumber;
@@ -283,15 +274,9 @@ namespace MediaBrowser.Providers.Manager
 
         private static void MergeTrailers(BaseItem source, BaseItem target, MetadataFields[] lockedFields, bool replaceData)
         {
-            var sourceCast = source as IHasTrailers;
-            var targetCast = target as IHasTrailers;
-
-            if (sourceCast != null && targetCast != null)
+            if (replaceData || target.RemoteTrailers.Length == 0)
             {
-                if (replaceData || targetCast.RemoteTrailers.Length == 0)
-                {
-                    targetCast.RemoteTrailers = sourceCast.RemoteTrailers;
-                }
+                target.RemoteTrailers = source.RemoteTrailers;
             }
         }
 

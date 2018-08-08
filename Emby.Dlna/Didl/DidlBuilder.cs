@@ -205,17 +205,11 @@ namespace Emby.Dlna.Didl
                 streamInfo = new StreamBuilder(_mediaEncoder, GetStreamBuilderLogger(options)).BuildVideoItem(new VideoOptions
                 {
                     ItemId = video.Id,
-                    MediaSources = sources.ToArray(sources.Count),
+                    MediaSources = sources.ToArray(),
                     Profile = _profile,
                     DeviceId = deviceId,
                     MaxBitrate = _profile.MaxStreamingBitrate
                 });
-            }
-
-            if (string.Equals(Path.GetExtension(video.Path), ".m2ts", StringComparison.OrdinalIgnoreCase))
-            {
-                var a = 1;
-                var b = a;
             }
 
             var targetWidth = streamInfo.TargetWidth;
@@ -950,19 +944,6 @@ namespace Emby.Dlna.Didl
         private void AddCover(BaseItem item, BaseItem context, StubType? stubType, XmlWriter writer)
         {
             ImageDownloadInfo imageInfo = null;
-
-            if (context is UserView)
-            {
-                var episode = item as Episode;
-                if (episode != null)
-                {
-                    var parent = episode.Series;
-                    if (parent != null)
-                    {
-                        imageInfo = GetImageInfo(parent);
-                    }
-                }
-            }
 
             // Finally, just use the image from the item
             if (imageInfo == null)

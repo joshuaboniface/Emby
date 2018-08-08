@@ -58,6 +58,8 @@ namespace MediaBrowser.Api.UserLibrary
         [ApiMember(Name = "IsHD", Description = "Optional filter by items that are HD or not.", IsRequired = false, DataType = "bool", ParameterType = "query", Verb = "GET")]
         public bool? IsHD { get; set; }
 
+        public bool? Is4K { get; set; }
+
         [ApiMember(Name = "LocationTypes", Description = "Optional. If specified, results will be filtered based on LocationType. This allows multiple, comma delimeted.", IsRequired = false, DataType = "string", ParameterType = "query", Verb = "GET", AllowMultiple = true)]
         public string LocationTypes { get; set; }
 
@@ -274,6 +276,8 @@ namespace MediaBrowser.Api.UserLibrary
         [ApiMember(Name = "ArtistIds", Description = "Optional. If specified, results will be filtered based on artist. This allows multiple, pipe delimeted.", IsRequired = false, DataType = "string", ParameterType = "query", Verb = "GET", AllowMultiple = true)]
         public string ArtistIds { get; set; }
 
+        public string AlbumArtistIds { get; set; }
+
         [ApiMember(Name = "Albums", Description = "Optional. If specified, results will be filtered based on album. This allows multiple, pipe delimeted.", IsRequired = false, DataType = "string", ParameterType = "query", Verb = "GET", AllowMultiple = true)]
         public string Albums { get; set; }
 
@@ -318,6 +322,12 @@ namespace MediaBrowser.Api.UserLibrary
 
         [ApiMember(Name = "CollapseBoxSetItems", Description = "Whether or not to hide items behind their boxsets.", IsRequired = false, DataType = "bool", ParameterType = "query", Verb = "GET")]
         public bool? CollapseBoxSetItems { get; set; }
+
+        public int? MinWidth { get; set; }
+        public int? MinHeight { get; set; }
+        public int? MaxWidth { get; set; }
+        public int? MaxHeight { get; set; }
+
         /// <summary>
         /// Gets or sets the video formats.
         /// </summary>

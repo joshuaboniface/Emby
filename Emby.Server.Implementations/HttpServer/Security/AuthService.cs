@@ -39,14 +39,12 @@ namespace Emby.Server.Implementations.HttpServer.Security
         /// </summary>
         public string HtmlRedirect { get; set; }
 
-        public void Authenticate(IRequest request,
-            IAuthenticationAttributes authAttribtues)
+        public void Authenticate(IRequest request, IAuthenticationAttributes authAttribtues)
         {
             ValidateUser(request, authAttribtues);
         }
 
-        private void ValidateUser(IRequest request,
-            IAuthenticationAttributes authAttribtues)
+        private void ValidateUser(IRequest request, IAuthenticationAttributes authAttribtues)
         {
             // This code is executed before the service
             var auth = AuthorizationContext.GetAuthorizationInfo(request);
@@ -61,9 +59,12 @@ namespace Emby.Server.Implementations.HttpServer.Security
                 }
             }
 
-            var user = auth.UserId.Equals(Guid.Empty)
-                ? null
-                : UserManager.GetUserById(auth.UserId);
+            if (authAttribtues.AllowLocalOnly && !request.IsLocal)
+            {
+                throw new SecurityException("Operation not found.");
+            }
+
+            var user = auth.User;
 
             if (user == null & !auth.UserId.Equals(Guid.Empty))
             {
@@ -141,6 +142,10 @@ namespace Emby.Server.Implementations.HttpServer.Security
             {
                 return true;
             }
+            if (authAttribtues.AllowLocalOnly && request.IsLocal)
+            {
+                return true;
+            }
 
             return false;
         }
@@ -153,6 +158,11 @@ namespace Emby.Server.Implementations.HttpServer.Security
             }
 
             if (authAttribtues.AllowLocal && request.IsLocal)
+            {
+                return true;
+            }
+
+            if (authAttribtues.AllowLocalOnly && request.IsLocal)
             {
                 return true;
             }

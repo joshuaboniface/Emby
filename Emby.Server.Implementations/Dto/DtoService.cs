@@ -501,39 +501,12 @@ namespace Emby.Server.Implementations.Dto
             return item.Id.ToString("N");
         }
 
-        /// <summary>
-        /// Converts a UserItemData to a DTOUserItemData
-        /// </summary>
-        /// <param name="data">The data.</param>
-        /// <returns>DtoUserItemData.</returns>
-        /// <exception cref="System.ArgumentNullException"></exception>
-        public UserItemDataDto GetUserItemDataDto(UserItemData data)
-        {
-            if (data == null)
-            {
-                throw new ArgumentNullException("data");
-            }
-
-            return new UserItemDataDto
-            {
-                IsFavorite = data.IsFavorite,
-                Likes = data.Likes,
-                PlaybackPositionTicks = data.PlaybackPositionTicks,
-                PlayCount = data.PlayCount,
-                Rating = data.Rating,
-                Played = data.Played,
-                LastPlayedDate = data.LastPlayedDate,
-                Key = data.Key
-            };
-        }
         private void SetBookProperties(BaseItemDto dto, Book item)
         {
             dto.SeriesName = item.SeriesName;
         }
         private void SetPhotoProperties(BaseItemDto dto, Photo item)
         {
-            dto.Width = item.Width;
-            dto.Height = item.Height;
             dto.CameraMake = item.CameraMake;
             dto.CameraModel = item.CameraModel;
             dto.Software = item.Software;
@@ -755,40 +728,6 @@ namespace Emby.Server.Implementations.Dto
         }
 
         /// <summary>
-        /// Gets the chapter info dto.
-        /// </summary>
-        /// <param name="chapterInfo">The chapter info.</param>
-        /// <param name="item">The item.</param>
-        /// <returns>ChapterInfoDto.</returns>
-        private ChapterInfoDto GetChapterInfoDto(ChapterInfo chapterInfo, BaseItem item)
-        {
-            var dto = new ChapterInfoDto
-            {
-                Name = chapterInfo.Name,
-                StartPositionTicks = chapterInfo.StartPositionTicks
-            };
-
-            if (!string.IsNullOrEmpty(chapterInfo.ImagePath))
-            {
-                dto.ImageTag = GetImageCacheTag(item, new ItemImageInfo
-                {
-                    Path = chapterInfo.ImagePath,
-                    Type = ImageType.Chapter,
-                    DateModified = chapterInfo.ImageDateModified
-                });
-            }
-
-            return dto;
-        }
-
-        public List<ChapterInfoDto> GetChapterInfoDtos(BaseItem item)
-        {
-            return _itemRepo.GetChapters(item.Id)
-                .Select(c => GetChapterInfoDto(c, item))
-                .ToList();
-        }
-
-        /// <summary>
         /// Sets simple property values on a DTOBaseItem
         /// </summary>
         /// <param name="dto">The dto.</param>
@@ -813,11 +752,6 @@ namespace Emby.Server.Implementations.Dto
             dto.Container = item.Container;
 
             dto.EndDate = item.EndDate;
-
-            if (fields.Contains(ItemFields.HomePageUrl))
-            {
-                dto.HomePageUrl = item.HomePageUrl;
-            }
 
             if (fields.Contains(ItemFields.ExternalUrls))
             {
@@ -897,10 +831,6 @@ namespace Emby.Server.Implementations.Dto
                 dto.LocationType = item.LocationType;
             }
 
-            if (item.IsHD.HasValue && item.IsHD.Value)
-            {
-                dto.IsHD = item.IsHD;
-            }
             dto.Audio = item.Audio;
 
             if (fields.Contains(ItemFields.Settings))
@@ -910,12 +840,6 @@ namespace Emby.Server.Implementations.Dto
             }
 
             dto.CriticRating = item.CriticRating;
-
-            var hasTrailers = item as IHasTrailers;
-            if (hasTrailers != null)
-            {
-                dto.LocalTrailerCount = hasTrailers.GetTrailerIds().Count;
-            }
 
             var hasDisplayOrder = item as IHasDisplayOrder;
             if (hasDisplayOrder != null)
@@ -931,9 +855,7 @@ namespace Emby.Server.Implementations.Dto
 
             if (fields.Contains(ItemFields.RemoteTrailers))
             {
-                dto.RemoteTrailers = hasTrailers != null ?
-                    hasTrailers.RemoteTrailers :
-                    new MediaUrl[] { };
+                dto.RemoteTrailers = item.RemoteTrailers;
             }
 
             dto.Name = item.Name;
@@ -1169,7 +1091,7 @@ namespace Emby.Server.Implementations.Dto
 
                 if (fields.Contains(ItemFields.Chapters))
                 {
-                    dto.Chapters = GetChapterInfoDtos(item);
+                    dto.Chapters = _itemRepo.GetChapters(item);
                 }
 
                 if (video.ExtraType.HasValue)
@@ -1209,15 +1131,26 @@ namespace Emby.Server.Implementations.Dto
                 }
             }
 
-            var hasSpecialFeatures = item as IHasSpecialFeatures;
-            if (hasSpecialFeatures != null)
-            {
-                var specialFeatureCount = hasSpecialFeatures.SpecialFeatureIds.Length;
+            BaseItem[] allExtras = null;
 
-                if (specialFeatureCount > 0)
+            if (fields.Contains(ItemFields.SpecialFeatureCount))
+            {
+                if (allExtras == null)
                 {
-                    dto.SpecialFeatureCount = specialFeatureCount;
+                    allExtras = item.GetExtras().ToArray();
                 }
+
+                dto.SpecialFeatureCount = allExtras.Count(i => i.ExtraType.HasValue && BaseItem.DisplayExtraTypes.Contains(i.ExtraType.Value));
+            }
+
+            if (fields.Contains(ItemFields.LocalTrailerCount))
+            {
+                if (allExtras == null)
+                {
+                    allExtras = item.GetExtras().ToArray();
+                }
+
+                dto.LocalTrailerCount = allExtras.Count(i => i.ExtraType.HasValue && i.ExtraType.Value == ExtraType.Trailer);
             }
 
             // Add EpisodeInfo
@@ -1327,6 +1260,33 @@ namespace Emby.Server.Implementations.Dto
                 if (item.ProductionLocations.Length > 0 || item is Movie)
                 {
                     dto.ProductionLocations = item.ProductionLocations;
+                }
+            }
+
+            if (fields.Contains(ItemFields.Width))
+            {
+                var width = item.Width;
+                if (width > 0)
+                {
+                    dto.Width = width;
+                }
+            }
+
+            if (fields.Contains(ItemFields.Height))
+            {
+                var height = item.Height;
+                if (height > 0)
+                {
+                    dto.Height = height;
+                }
+            }
+
+            if (fields.Contains(ItemFields.IsHD))
+            {
+                // Compatibility
+                if (item.IsHD)
+                {
+                    dto.IsHD = true;
                 }
             }
 
@@ -1495,15 +1455,15 @@ namespace Emby.Server.Implementations.Dto
 
             var defaultAspectRatio = item.GetDefaultPrimaryImageAspectRatio();
 
-            if (defaultAspectRatio.HasValue)
+            if (defaultAspectRatio > 0)
             {
                 if (supportedEnhancers.Length == 0)
                 {
-                    return defaultAspectRatio.Value;
+                    return defaultAspectRatio;
                 }
 
                 double dummyWidth = 200;
-                double dummyHeight = dummyWidth / defaultAspectRatio.Value;
+                double dummyHeight = dummyWidth / defaultAspectRatio;
                 size = new ImageSize(dummyWidth, dummyHeight);
             }
             else
