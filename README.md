@@ -9,6 +9,8 @@ This repository is a hard fork of Emby 3.4.1.18 which unlocks Premium status by 
 
 ## Rationale
 
+**Update 2018-12-08**: Emby has officially gone closed-source, putting more impetus on this project to provide a Free Software fork/alternative to Emby. Please check back here for updates!
+
 I will start by saying I am only an Emby user and a professional sysadmin who lightly dabbles in Python. This is the story of why I'm forking Emby completely and forming a separate project.
 
 In 2015, I and a number of other users requested LDAP support for Emby. I had been trying it out for about a year, as I was specifically looking for a Free Software alternative to Plex. This was the last missing feature for me, and one that I viewed as simple and critical to any piece of authenticated web-based software. I was also very willing to support the project with a premium membership when it fit my last need, so I waited patiently.
