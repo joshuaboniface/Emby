@@ -9,7 +9,7 @@ This repository is a hard fork of Emby 3.4.1.18 which unlocks Premium status by 
 
 ## Rationale
 
-**Update 2018-12-08**: Emby has officially gone closed-source, putting more impetus on this project to provide a Free Software fork/alternative to Emby. Please check back here for updates!
+**Update 2018-12-08**: Emby has officially gone closed-source, putting more impetus on this project to provide a Free Software fork/alternative to Emby. The new project can be found at https://github.com/jellyfin/jellyfin
 
 I will start by saying I am only an Emby user and a professional sysadmin who lightly dabbles in Python. This is the story of why I'm forking Emby completely and forming a separate project.
 
